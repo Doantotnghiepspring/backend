@@ -51,4 +51,8 @@ public class Transaction {
   @Column(name = "description", columnDefinition = "TEXT")
   private String description; // Toàn bộ nội dung tin nhắn SMS
 
+  public long getCustomerId(){
+    String[] parts = this.content.split("_", 3);
+    return Long.parseLong(parts[1]);
+  }
 }

@@ -36,4 +36,5 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
   Optional<OrderDetail> findByOrderDetailIdAndUserId(@Param("orderDetailId") Long orderDetailId,
       @Param("userId") Long userId);
 
+  List<OrderDetail> findByOrder(Order order);
 }

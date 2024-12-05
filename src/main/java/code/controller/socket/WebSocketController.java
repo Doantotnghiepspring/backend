@@ -15,26 +15,35 @@ public class WebSocketController {
     String destination = "/send/customer/" + customerId;
     messagingTemplate.convertAndSend(destination, message);
   }
-// Admin seen tất cả tin nhắn của customer
-public void adminSeenMessage(long customerId, Object conversation) {
-  String destination = "/seen/customer/" + customerId +"/seen";
-  messagingTemplate.convertAndSend(destination, conversation);
-}
+
+  // Admin seen tất cả tin nhắn của customer
+  public void adminSeenMessage(long customerId, Object conversation) {
+    String destination = "/seen/customer/" + customerId + "/seen";
+    messagingTemplate.convertAndSend(destination, conversation);
+  }
+
   //  Customer gửi tin nhắn tới admin
-  public void customerSendToAdmin( Object message) {
+  public void customerSendToAdmin(Object message) {
     String destination = "/send/admin";
     messagingTemplate.convertAndSend(destination, message);
   }
 
   // Customer seen tất cả tin nhắn của admin
-  public void customerSeenMessage(long customerId, Object conversation) {
-    String destination = "/customers/" + customerId +"/seen";
-    messagingTemplate.convertAndSend(destination, conversation);
+  public void customerSeenMessage(long customerId, Object message) {
+    String destination = "/customers/" + customerId + "/seen";
+    messagingTemplate.convertAndSend(destination, message);
   }
 
-//  Thông báo tới admin khi khách đặt đơn hàng
-public void customerCreateNewOrder( Object message) {
-  String destination = "/newOrder";
-  messagingTemplate.convertAndSend(destination, message);
-}
+  //  Thông báo sau khi khách thanh toán thành công
+  public void customerPaySuccess(long customerId, Object payOK) {
+    String destination = "/pay/customers/" + customerId;
+    messagingTemplate.convertAndSend(destination, payOK);
+  }
+
+  //  Thong bao cho admin sau khi co don hang da thanh toan
+  public void newOrderPaid(Object message) {
+    String destination = "/notify/newOrderPaid";
+    messagingTemplate.convertAndSend(destination, message);
+  }
+
 }
