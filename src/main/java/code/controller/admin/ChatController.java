@@ -14,12 +14,12 @@ public class ChatController {
   private ChatService chatService;
   private WebSocketController webSocketController;
 
-  public ChatController(ChatService chatService,WebSocketController webSocketController) {
+  public ChatController(ChatService chatService, WebSocketController webSocketController) {
     this.chatService = chatService;
     this.webSocketController = webSocketController;
   }
 
-//  Lấy tất cả hôi thoại : dành cho phần tin nhắn bên ngoài
+  //  Lấy tất cả hôi thoại : dành cho phần tin nhắn bên ngoài
 /*
 * ----------------------------
 | Ưu tiên   | Khác        |
@@ -63,17 +63,27 @@ public class ChatController {
   public ResponseEntity<?> getMessagesByConversationId(
       @PathVariable long conversationId,
       @RequestParam(defaultValue = "0") int page) {
-    return ResponseEntity.ok(chatService.getMessagesByConversation(conversationId,page));
+    return ResponseEntity.ok(chatService.getMessagesByConversation(conversationId, page));
   }
 
-//  Gửi tin nhắn tới customer có id là customerId
+  //  Gửi tin nhắn tới customer có id là customerId
   @PostMapping("/")
   public ResponseEntity<?> chatToCustomer(
       @RequestParam long customerId,
-      @RequestBody  ChatRequest request
-  ){
-    Message response = chatService.chatToCustomer(customerId,request);
-    webSocketController.sendChatNotification(customerId, response);
+      @RequestBody ChatRequest request
+  ) {
+    Message response = chatService.chatToCustomer(customerId, request);
+    webSocketController.adminSendToCustomer(customerId, response);
     return ResponseEntity.ok(response);
+  }
+
+  //  Seen tat ca tin nhan cua customer co id la customerId
+  @PutMapping("/")
+  public ResponseEntity<?> seenMessageCustomer(
+      @RequestParam long customerId
+  ) {
+    int messages = chatService.seenMessageFromCustomer(customerId);
+    webSocketController.adminSeenMessage(customerId,messages);
+    return ResponseEntity.ok("Đã xem tất cả " + messages + " tin nhắn của customer có id : "+customerId);
   }
 }

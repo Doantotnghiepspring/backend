@@ -23,25 +23,26 @@ public class ChatService {
   private UserRepository userRepository;
 
   public ChatService(MessageRepository messageRepository,
-                     ConversationRepository conversationRepository,
-                     UserRepository userRepository) {
+      ConversationRepository conversationRepository, UserRepository userRepository) {
     this.conversationRepository = conversationRepository;
     this.messageRepository = messageRepository;
     this.userRepository = userRepository;
   }
-//  Lấy phân trang các tin nhắn đã nhắn
-  public Page<Message> getMessages(User user, int page, int size){
+
+  //  Lấy phân trang các tin nhắn đã nhắn
+  public Page<Message> getMessages(User user, int page, int size) {
     Pageable pageable = PageRequest.of(page, size);
     //    Lấy cuộc trò chuyện ra theo customerId
-    Conversation conversation = conversationRepository.findByCustomerId(user.getId())
-        .orElseThrow(() -> new NotFoundException(
+    Conversation conversation = conversationRepository.findByCustomerId(user.getId()).orElseThrow(
+        () -> new NotFoundException(
             "Không thấy Conversation tương ứng với CustomerId : " + user.getId()));
 //    Lấy ra (size) tin nhắn mới nhất trong cuộc trò chuyện
-    return messageRepository.findALlByConversation(pageable,conversation);
+    return messageRepository.findALlByConversation(pageable, conversation);
   }
-//  Tạo 1 tin nhắn mới tới admin
+
+  //  Tạo 1 tin nhắn mới tới admin
   @Transactional
-  public Message chatToAdmin(ChatRequest request,User customer) {
+  public Message chatToAdmin(ChatRequest request, User customer) {
 //    Lấy cuộc trò chuyện ra theo customerId
     Conversation conversation = conversationRepository.findByCustomerId(customer.getId())
         .orElseThrow(() -> new NotFoundException(
@@ -50,12 +51,13 @@ public class ChatService {
     Message message = new Message();
     message.setSenderId(customer.getId());
     message.setSenderRole("customer");
+    message.setReceiverId(0);
+    message.setReceiverRole("admin");
     message.setContent(request.getContent());
     message.setConversation(conversation);
 //    Cập nhật dữ liệu cho Conversation như tin nhắn cuối, thời gian cập nhật, ....
     LocalDateTime now = LocalDateTime.now();
     message.setCreatedAt(now);
-    message.setUpdatedAt(now);
     conversation.setUpdatedAt(now);
     conversation.setLastSenderId(customer.getId());
     conversation.setLastMessageContent(message.getContent());
@@ -66,20 +68,9 @@ public class ChatService {
     return message;
   }
 
-// đánh dấu là đã seen tất cả các tin nhắn của admin
-public Message seenMessageFromAdmin(long customerId,long messageId){
-  Message message = messageRepository.findById(messageId)
-      .orElseThrow(()-> new NotFoundException("Không thấy Message có id : " + messageId));
-//  Kiểm tra nếu tin nhắn này của customer này thì mới được gọi api
-  if(message.getConversation().getCustomerId() != messageId){
-    throw new ForbiddenException("Forbidden!");
+  // đánh dấu là đã seen tất cả các tin nhắn của admin
+  public int seenMessageFromAdmin(User customer) {
+    int messages = messageRepository.seenMessageFromAdmin(0, "admin", customer.getId(), "customer");
+    return messages;
   }
-  else{
-    message.setSeen(true);
-    Conversation conversation = message.getConversation();
-    messageRepository.save(message);
-    conversationRepository.save(conversation);
-    return message;
-  }
-}
 }

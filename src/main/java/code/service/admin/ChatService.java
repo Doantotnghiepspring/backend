@@ -65,30 +65,27 @@ public class ChatService {
     Message message = new Message();
     message.setSenderId(0);
     message.setSenderRole("admin");
+    message.setReceiverId(customerId);
+    message.setReceiverRole("customer");
     message.setContent(request.getContent());
     message.setConversation(conversation);
 //    Cập nhật dữ liệu cho Conversation như tin nhắn cuối, thời gian cập nhật, ....
     LocalDateTime now = LocalDateTime.now();
     message.setCreatedAt(now);
-    message.setUpdatedAt(now);
     conversation.setUpdatedAt(now);
     conversation.setLastSenderId(0);
     conversation.setLastMessageContent(message.getContent());
 //    Lưu tin nhắn và cập nhật thời gian Conversation cùng lúc
     messageRepository.save(message);
     conversationRepository.save(conversation);
-
     return message;
   }
 
-//  seen tin nhắn của customer : tất cả admin đều có thể seen được
-  public Message seenMessageFromCustomer(long messageId){
-    Message message = messageRepository.findById(messageId)
-        .orElseThrow(()-> new NotFoundException("Không thấy Message có id : " + messageId));
-    message.setSeen(true);
-    Conversation conversation = message.getConversation();
-    messageRepository.save(message);
-    conversationRepository.save(conversation);
-    return message;
+//  seen tin nhắn của customer co id la customerId : tất cả admin đều có thể seen được
+  public int seenMessageFromCustomer(long customerId){
+    User customer = userRepository.findById(customerId)
+        .orElseThrow(()-> new NotFoundException("Không thấy Message có id : " + customerId));
+    int messages = messageRepository.seenMessageFromCustomer(customerId,"customer");
+    return messages;
   }
 }

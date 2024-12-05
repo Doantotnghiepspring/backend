@@ -25,8 +25,17 @@ public class Message {
 //  Nếu là admin thì senderId là 0
   private long senderId ;
 
+
+  @Column(name = "receiver_id", nullable = false)
+//  Nếu là customer thì receiverId là receiverId
+//  Nếu là admin thì receiverId là 0
+  private long receiverId ;
+
   @Column(name = "sender_role", nullable = false)
   private String senderRole;
+
+  @Column(name = "receiver_role", nullable = false)
+  private String receiverRole;
 
   @Column(name = "content",nullable = false)
   private String content;
@@ -37,10 +46,6 @@ public class Message {
   @Column(name = "created_at",nullable = false)
   @CreationTimestamp
   private LocalDateTime createdAt;
-
-  @UpdateTimestamp
-  @Column(name = "updated_at",nullable = false)
-  private LocalDateTime updatedAt;
 
   @JsonIgnore
   @ManyToOne

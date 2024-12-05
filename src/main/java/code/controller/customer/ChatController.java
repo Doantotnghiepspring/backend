@@ -1,5 +1,8 @@
 package code.controller.customer;
 
+import code.controller.socket.WebSocketController;
+import code.model.entity.User;
+import code.model.more.Message;
 import code.model.request.ChatRequest;
 import code.security.CustomUserDetails;
 import code.service.customer.ChatService;
@@ -13,8 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/customer")
 public class ChatController {
   private ChatService chatService;
-  public ChatController(ChatService chatService){
+  private WebSocketController webSocketController;
+  public ChatController(ChatService chatService,WebSocketController webSocketController){
     this.chatService = chatService;
+    this.webSocketController = webSocketController;
   }
 
   @GetMapping("/chat")
@@ -24,15 +29,21 @@ public class ChatController {
     return ResponseEntity.ok(chatService.getMessages(userDetail.getUser(),page,size ));
   }
 
+//  Nhan tin voi admin
   @PostMapping("/chat")
   public ResponseEntity<?> chatToAdmin(@AuthenticationPrincipal CustomUserDetails userDetail,@RequestBody
   ChatRequest request){
-    return ResponseEntity.ok(chatService.chatToAdmin(request,userDetail.getUser()));
+    Message response = chatService.chatToAdmin(request,userDetail.getUser());
+    webSocketController.customerSendToAdmin(response);
+    return ResponseEntity.ok(response);
   }
 
-//  @PutMapping("/chat/{chatId}")
-//  @CheckUserAccess
-//  public ResponseEntity<?> seenMessageFormAdmin(){
-//
-//  }
+//  Seen tat ca cac tin nhan admin gui den minh`
+  @PutMapping("/chat")
+  public ResponseEntity<?> seenMessageFormAdmin(@AuthenticationPrincipal CustomUserDetails userDetail){
+    User customer = userDetail.getUser();
+    int response = chatService.seenMessageFromAdmin(customer);
+    webSocketController.customerSeenMessage(customer.getId(),response);
+    return ResponseEntity.ok(response);
+  }
 }
