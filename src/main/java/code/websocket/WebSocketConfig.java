@@ -13,14 +13,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   @Override
   public void configureMessageBroker(MessageBrokerRegistry config) {
     // Enable a simple broker for broadcasting messages
-    config.enableSimpleBroker("/send", "/seen","/pay","/notify"); // For 1-to-1 and 1-to-many messages
+    config.enableSimpleBroker("/send", "/seen", "/pay",
+        "/notify"); // For 1-to-1 and 1-to-many messages
     config.setApplicationDestinationPrefixes("/app"); // Prefix for sending messages
   }
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     // Register the WebSocket endpoint that the clients will use
-    registry.addEndpoint("/ws").setAllowedOrigins("http://127.0.0.1:5500","https://fe-datn-three.vercel.app").withSockJS();
+    registry.addEndpoint("/ws")
+        .setAllowedOrigins("http://127.0.0.1:5500",
+                           "https://fe-datn-three.vercel.app",
+                            "http://localhost:3000")
+        .withSockJS();
   }
 
 
