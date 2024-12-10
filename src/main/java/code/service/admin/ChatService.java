@@ -45,7 +45,7 @@ public class ChatService {
 
 //  Lấy nội dung tin nhắn : load cố định 20 tin nhắn trên Page
   public Page<Message> getMessagesByConversation(long conversationId,int page){
-    Pageable pageable = PageRequest.of(page,20, Sort.by(Sort.Direction.DESC, "updatedAt"));
+    Pageable pageable = PageRequest.of(page,20, Sort.by(Sort.Direction.DESC, "createAt"));
     Conversation conversation = conversationRepository.findById(conversationId)
         .orElseThrow(()-> new NotFoundException("Không thấy Conversation có id : "+ conversationId));
     return messageRepository.findALlByConversation(pageable,conversation);
