@@ -36,20 +36,37 @@ public class TransactionService {
     transaction.setId(null);
     transactionRepository.save(transaction);
 //    Thay doi trang thai đơn hàng : 1 -> 2
-//    Lay thong tin (*******SEVQR_makhachhang_madonhang)
+//    Lay thong tin tu noi dung chuyen khoan
+//    Thanh toan don hang(*******SEVQR_01_makhachhang_madonhang)
+//    Nop phu phi qua han, mat, hong san pham(*******SEVQR_02_makhachhang_madonhang)
 
     String content = request.getContent();
-    String[] parts = content.split("_", 3);
-    long makhachhang = Long.parseLong(parts[1]);
-    long madonhang = Long.parseLong(parts[2]);
-    Order order = orderRepository.findById(madonhang)
-        .orElseThrow(() -> new NotFoundException("Không timg thấy Order có id : " + madonhang));
-    List<OrderDetail> orderDetails = orderDetailRepository.findByOrder(order);
-    for(OrderDetail orderDetail : orderDetails){
-      orderDetail.setStatus(2);
-      orderDetailRepository.save(orderDetail);
+    String[] parts = content.split("_", 4);
+    long typePayment = Long.parseLong(parts[1]);
+//    Neu ma la ******SEVQR_01_****** thi la chuyen khoan thanh toan don hang
+    if(typePayment == 1){
+      long makhachhang = Long.parseLong(parts[2]);
+      long madonhang = Long.parseLong(parts[3]);
+      Order order = orderRepository.findById(madonhang)
+          .orElseThrow(() -> new NotFoundException("Không tìm thấy Order có id : " + madonhang));
+      List<OrderDetail> orderDetails = orderDetailRepository.findByOrder(order);
+      for(OrderDetail orderDetail : orderDetails){
+        orderDetail.setStatus(2);
+        orderDetailRepository.save(orderDetail);
+      }
+      return transaction;
     }
-    return transaction;
+//    Neu ma la ******SEVQR_02_***** thi la thanh toan phu phi
+    if(typePayment == 2){
+      long makhachhang = Long.parseLong(parts[2]);
+      long madonhang = Long.parseLong(parts[3]);
+      OrderDetail orderDetail = orderDetailRepository.findById(madonhang)
+          .orElseThrow(() -> new NotFoundException("Không tìm thấy OrderDetail có id : " + madonhang));
+      orderDetail.setStatus(8);
+      orderDetailRepository.save(orderDetail);
+      return transaction;
+    }
+    return null;
   }
 //  mở QR
 //  ng dùng quét -> lưu đc giao dịch vào db -> socket gửi về fe để xác nhận thành công ->đóng QR

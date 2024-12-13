@@ -11,7 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "product_details", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"type", "color"})})
+    @UniqueConstraint(columnNames = {"type", "color","product_condition"})})
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter

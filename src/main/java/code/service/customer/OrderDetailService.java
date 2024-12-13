@@ -100,12 +100,6 @@ public class OrderDetailService {
     return orderDetails;
   }
 
-//  Thanh toán đon hàng
-//  public OrderDetail purchaseOrderDetail(){
-//
-//  }
-//  Hủy đơn hàng
-
   public OrderDetail cancelOrderDetail(User user, long orderDetailId) {
     OrderDetail orderDetail = orderDetailRepository.findByOrderDetailIdAndUserId(orderDetailId,
             user.getId())
@@ -119,4 +113,17 @@ public class OrderDetailService {
     return orderDetail;
   }
 
+//  đơn hàng ở stt4 : đã nhận được hàng và khách hàng có nhu cầu trả hàng -> chuyển status từ 4->5
+public OrderDetail wanToReturnOrderDetail(User user, long orderDetailId) {
+  OrderDetail orderDetail = orderDetailRepository.findByOrderDetailIdAndUserId(orderDetailId,
+          user.getId())
+      .orElseThrow(() -> new NotFoundException(
+          "Không tìm thấy đơn hàng tương ứng "));
+  if (orderDetail.getStatus() == 4 ) {
+    orderDetail.setStatus(5);
+  } else {
+    throw new BadRequestException("Lỗi khi thay đổi trạng thái.");
+  }
+  return orderDetail;
+}
 }

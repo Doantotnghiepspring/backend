@@ -19,6 +19,9 @@ public class WebHookRequest {
   private LocalDateTime transactionDate; // Thời gian xảy ra giao dịch phía ngân hàng
   private String accountNumber; // Số tài khoản ngân hàng
   private String code; // Mã code thanh toán
+//  Dat hang
+//  SEVQR_01_MaKH_MaDonHang - dathang
+//  SEVQR_02_MaKH_MaDonHangDetail - loi
   private String content; // Nội dung chuyển khoản
   private String transferType; // Loại giao dịch (in hoặc out)
   private Long transferAmount; // Số tiền giao dịch

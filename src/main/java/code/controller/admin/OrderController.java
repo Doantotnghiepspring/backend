@@ -1,5 +1,6 @@
 package code.controller.admin;
 
+import code.model.request.CreateOrderReturnRequest;
 import code.service.admin.OrderService;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.http.ResponseEntity;
@@ -30,5 +31,10 @@ public class OrderController {
     return ResponseEntity.ok(orderService.updateStatusOrderDetailById(orderDetailId,status));
   }
 //  Láy tất cả đơn hàng theo tên người dùng : tìm theo tên người dùng hoặc id người dùng
-
+// Tạo OrderReturn
+  @PostMapping("/orders/{orderDetailId}/return")
+  public ResponseEntity<?> createOrderReturn(@PathVariable long orderDetailId,
+      @RequestBody  CreateOrderReturnRequest request){
+    return ResponseEntity.ok(orderService.createOrderReturn(orderDetailId,request));
+  }
 }

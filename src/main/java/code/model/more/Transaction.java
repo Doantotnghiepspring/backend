@@ -52,7 +52,12 @@ public class Transaction {
   private String description; // Toàn bộ nội dung tin nhắn SMS
 
   public long getCustomerId(){
-    String[] parts = this.content.split("_", 3);
+    String[] parts = this.content.split("_", 4);
+    return Long.parseLong(parts[2]);
+  }
+
+  public long getTypePayment(){
+    String[] parts = this.content.split("_", 4);
     return Long.parseLong(parts[1]);
   }
 }

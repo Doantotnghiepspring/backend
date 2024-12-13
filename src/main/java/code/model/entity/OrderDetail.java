@@ -43,11 +43,19 @@ public class OrderDetail {
   
   @Column(name = "status",nullable = false)
   private int status;
-//  1 : Chưa thanh toán - Có thể hủy
-//  2 : Đã thanh toán đơn hàng xong chờ giao - có thể hủy được
-//  3 : Đang giao
-//  4 : Đã giao đến nơi  - Không thể hủy đơn -> Tạo 1 OrderReturn
+//  1 : Chưa thanh toán - Có thể hủy (chỉ khách hàng chuyển 1->0)
+//  2 : Đã thanh toán đơn hàng xong chờ giao(chỉ admin chuyển 2->3)
+//  3 : Đang giao(chỉ admin chuyển 3->4)
+//  4 : Đã giao đến nơi -> Tạo 1 OrderReturn (chỉ khách chuyển 4->5)
+//  5 : Khách hàng muốn trả đơn hàng(chỉ admin chuyển 5->6)
+//  6 : Khách hàng đã trả xong và tạo OrderReturn để tính phí nếu hỏng, quá hạn, ...
+//  7 : Có phát sinh thêm phí đang chờ KH thanh toán phí này
+//  8 : Hoàn tất
 //  0 : Đã hủy
+
+//  cus : 1->0(hủy đơn),1->2(KH đã thanh toán xong)
+//  4->5(muốn trả lại đồ), 7->8(KH đã thanh toán phí phạt hoặc không thì sẽ là xác nhận hoàn tất)
+//  admin : 2->3->4, 5->6
 
 
   @Column(name = "created_at",nullable = false)
