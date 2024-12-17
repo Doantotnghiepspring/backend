@@ -6,14 +6,18 @@ import code.model.entity.Order;
 import code.model.entity.OrderDetail;
 import code.model.entity.ProductDetail;
 import code.model.entity.User;
+import code.model.more.Notification;
 import code.model.request.CreateOrderDetailRequest;
 import code.model.request.ProductItem;
+import code.repository.NotificationRepository;
 import code.repository.OrderDetailRepository;
 import code.repository.OrderRepository;
 import code.repository.ProductDetailRepository;
 import code.repository.UserRepository;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,14 +31,17 @@ public class OrderDetailService {
   private OrderRepository orderRepository;
   private UserRepository userRepository;
   private ProductDetailRepository productDetailRepository;
+  private NotificationRepository notificationRepository;
 
   public OrderDetailService(OrderDetailRepository orderDetailRepository,
       UserRepository userRepository,
       ProductDetailRepository productDetailRepository,
-      OrderRepository orderRepository) {
+      OrderRepository orderRepository,
+      NotificationRepository notificationRepository) {
     this.orderDetailRepository = orderDetailRepository;
     this.userRepository = userRepository;
     this.orderRepository = orderRepository;
+    this.notificationRepository = notificationRepository;
     this.productDetailRepository = productDetailRepository;
   }
 
@@ -112,20 +119,27 @@ public class OrderDetailService {
   }
 
 //  đơn hàng ở stt4 : đã nhận được hàng và khách hàng có nhu cầu trả hàng -> chuyển status từ 4->5
-public OrderDetail wanToReturnOrderDetail(User user, long orderDetailId) {
+public Map<String,Object> wanToReturnOrderDetail(User user, long orderDetailId) {
   OrderDetail orderDetail = orderDetailRepository.findByOrderDetailIdAndUserId(orderDetailId,
           user.getId())
       .orElseThrow(() -> new NotFoundException(
           "Không tìm thấy đơn hàng tương ứng "));
+  Notification notification = new Notification();
   if (orderDetail.getStatus() == 4 ) {
     orderDetail.setStatus(5);
-
+    notification.setOrderId(orderDetailId);
+    notification.setRoleReceive("admin");
+    notification.setContent("Đơn hàng "+orderDetailId+" đang được người dùng muốn trả");
+    notification.setUserReceiveId(0);
+    notification.setStatus(false);
+    notificationRepository.save(notification);
   } else {
     throw new BadRequestException("Lỗi khi thay đổi trạng thái.");
   }
-  return orderDetail;
+  Map<String,Object> map = new HashMap<>();
+  map.put("notification",notification);
+  map.put("orderDetail",orderDetail);
+  return map;
 }
-
-//7->8 : Xác nhận hoàn tất thanh toán ReturnOrder
 
 }

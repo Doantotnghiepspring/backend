@@ -2,9 +2,12 @@ package code.controller.customer;
 
 import code.controller.more.WebSocketController;
 import code.model.entity.OrderDetail;
+import code.model.entity.OrderReturn;
+import code.model.more.Notification;
 import code.model.request.CreateOrderDetailRequest;
 import code.security.CustomUserDetails;
 import code.service.customer.OrderDetailService;
+import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -67,21 +70,15 @@ public class OrderDetailController {
         orderDetailService.cancelOrderDetail(userDetail.getUser(), orderDetailId));
   }
 
-  //  Lay don hang theo orderId
-  @GetMapping("/orders/{orderDetailId}")
-  public ResponseEntity<?> getOrderDetailById(@AuthenticationPrincipal CustomUserDetails userDetail,
-      @PathVariable Long orderDetailId) {
-    return ResponseEntity.ok(
-        orderDetailService.cancelOrderDetail(userDetail.getUser(), orderDetailId));
-  }
-
   //  Khach muon tra hang
   @PutMapping("/orders/{orderDetailId}/return")
   public ResponseEntity<?> returnOrderDetail(@AuthenticationPrincipal CustomUserDetails userDetail,
       @PathVariable Long orderDetailId) {
-    OrderDetail orderDetail = orderDetailService.wanToReturnOrderDetail(userDetail.getUser(),
-        orderDetailId);
-    webSocketController.customerWantToReturn(orderDetailId,orderDetail);
+    Map<String, Object> response = (Map<String, Object>) orderDetailService.wanToReturnOrderDetail(
+        userDetail.getUser(), orderDetailId);
+    OrderDetail orderDetail = (OrderDetail) response.get("orderDetail");
+    Notification notification = (Notification) response.get("notification");
+    webSocketController.customerWantToReturn(notification);
     return ResponseEntity.ok(orderDetail);
   }
 }

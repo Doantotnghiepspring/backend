@@ -65,7 +65,7 @@ public class TransactionService {
       notification.setOrderId(orderId);
       notification.setRoleReceive("admin");
       notification.setContent("Đơn hàng "+orderId+" đã được khách hàng thanh toán");
-      notification.setUserId(0);
+      notification.setUserReceiveId(0);
       notification.setStatus(false);
       notificationRepository.save(notification);
       map.put("notification",notification);
@@ -84,7 +84,7 @@ public class TransactionService {
       notification.setOrderId(orderDetailId);
       notification.setRoleReceive("admin");
       notification.setContent("Đơn hàng "+orderDetailId+" đã được khách hàng thanh toán phụ phí");
-      notification.setUserId(0);
+      notification.setUserReceiveId(0);
       notification.setStatus(false);
       notificationRepository.save(notification);
       map.put("notification",notification);

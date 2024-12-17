@@ -28,7 +28,7 @@ public class Notification {
 
 // Neu la khach hang thi la userId cua khach hang : id của người nhan
   @Column(name = "user_id", nullable = false)
-  private long userId = 0;
+  private long userReceiveId = 0;
 
   @Column(name = "order_id", nullable = false)
   private long orderId;

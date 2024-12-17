@@ -56,21 +56,21 @@ public class WebSocketController {
   }
 
   //  4. Đơn hàng đã được nhận bởi khách hàng : thông báo dạng Notif cho khách
-  public void reserveOrderDetail(long customerId, long orderDetailId, Object obj) {
-    String destination = "/customer/" + customerId + "/order/receive/" + orderDetailId;
+  public void reserveOrderDetail(long customerId, Object obj) {
+    String destination = "/customer/" + customerId + "/order/receive";
     messagingTemplate.convertAndSend(destination, obj);
   }
 
   // 5. Khách muốn trả hàng : thông báo Notif cho admin
-  public void customerWantToReturn(long orderDetailId, Object obj) {
-    String destination = "/admin/order/" + orderDetailId + "/deliver";
+  public void customerWantToReturn(Object obj) {
+    String destination = "/admin/order/wantToReturn";
     messagingTemplate.convertAndSend(destination, obj);
   }
 
   // 6. Đã nhận lại sản phẩm thành công và kiểm tra
   // 7. Thông báo OrderReturn cho khách để nếu có mất phí khách biết
-  public void newOrderReturn(long customerId, long orderDetailId, Object obj) {
-    String destination = "/customer/" + customerId + "/order/" + orderDetailId + "/return";
+  public void newOrderReturn(long customerId, Object obj) {
+    String destination = "/customer/" + customerId + "/order/return";
     messagingTemplate.convertAndSend(destination, obj);
   }
 
@@ -83,7 +83,7 @@ public class WebSocketController {
 
   //  8.2 Thông báo đã thanh toán thành công cho customer
   public void customerPayFeeSuccess(long customerId, String obj) {
-    String destination = "/customer/" + customerId + "/order/paySuccess";
+    String destination = "/customer/" + customerId + "/order/payFeeSuccess";
     messagingTemplate.convertAndSend(destination, obj);
   }
 

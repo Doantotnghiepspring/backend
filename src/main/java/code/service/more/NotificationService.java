@@ -26,7 +26,7 @@ public class NotificationService {
       else{
         notification.setRoleReceive("customer");
       }
-      notification.setUserId(userId);
+      notification.setUserReceiveId(userId);
       notification.setStatus(false);
       notification.setOrderId(orderId);
       return notificationRepository.save(notification);
@@ -35,7 +35,7 @@ public class NotificationService {
 //Xem cac page thông báo
   public Page<Notification> getNotifications(String role,long userId,int page,int size){
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-    return notificationRepository.findByRoleReceiveAndUserId(role,userId,pageable);
+    return notificationRepository.findByRoleReceiveAndUserReceiveId(role,userId,pageable);
   }
 
 //  Danh dau thong bao da duoc xem

@@ -56,11 +56,12 @@ public class OrderService {
   }
 
   //  Thay đổi trạng thái đơn hàng
-  public Object updateStatusOrderDetailById(long orderDetailId, int status) {
+  public Map<String, Object> updateStatusOrderDetailById(long orderDetailId, int status) {
+    Notification notification = new Notification();
     OrderDetail orderDetail = orderDetailRepository.findById(orderDetailId)
         .orElseThrow(
             () -> new NotFoundException("Không thấy OrderDetail có id : " + orderDetailId));
-    if (status < 0 || status > 6) {
+    if (status < 0 || status > 8) {
       throw new BadRequestException("Trạng thái không hợp lệ");
     }
 // Đã thanh toán -> đang vận chuyển
@@ -71,11 +72,10 @@ public class OrderService {
         ProductDetail productDetail = orderDetail.getProductDetail();
         productDetail.setInventory(productDetail.getInventory() - orderDetail.getQuantity());
         productDetailRepository.save(productDetail);
-        Notification notification = new Notification();
         notification.setOrderId(orderDetailId);
         notification.setRoleReceive("customer");
         notification.setContent("Đơn hàng "+orderDetailId+" đang được vận chuyển");
-        notification.setUserId(orderDetail.getOrder().getUser().getId());
+        notification.setUserReceiveId(orderDetail.getOrder().getUser().getId());
         notification.setStatus(false);
         notificationRepository.save(notification);
       } else {
@@ -87,14 +87,10 @@ public class OrderService {
       if (orderDetail.getStatus() == 3) {
         orderDetail.setStatus(4);
         orderDetailRepository.save(orderDetail);
-        OrderReturn orderReturn = new OrderReturn();
-        orderReturn.setOrderDetail(orderDetail);
-        orderReturnRepository.save(orderReturn);
-        Notification notification = new Notification();
         notification.setOrderId(orderDetailId);
         notification.setRoleReceive("customer");
         notification.setContent("Đơn hàng "+orderDetailId+" đã giao cho bạn");
-        notification.setUserId(orderDetail.getOrder().getUser().getId());
+        notification.setUserReceiveId(orderDetail.getOrder().getUser().getId());
         notification.setStatus(false);
         notificationRepository.save(notification);
       } else {
@@ -103,18 +99,11 @@ public class OrderService {
     }
 
 //  Đơn ở trạng thái : muốn trả hàng -> đã trả hàng thành công : 5->6
-//  Trả xong
+//  Trả xong : khong can thong bao cho khach hang
     if (status == 6) {
       if (orderDetail.getStatus() == 5) {
         orderDetail.setStatus(6);
         orderDetailRepository.save(orderDetail);
-        Notification notification = new Notification();
-        notification.setOrderId(orderDetailId);
-        notification.setRoleReceive("admin");
-        notification.setContent("Đơn hàng "+orderDetailId+" đang được người dùng muốn trả");
-        notification.setUserId(0);
-        notification.setStatus(false);
-        notificationRepository.save(notification);
       } else {
         throw new BadRequestException("Không thể chuyển trạng thái");
       }
@@ -124,16 +113,17 @@ public class OrderService {
     User user = order.getUser();
     Map<String, Object> response = new HashMap<>();
     response.put("orderDetail", orderDetail);
-    response.put("user", user);
+    response.put("notification", notification);
     return response;
   }
 
 //  Chuyển trạng thái OrderDetail từ 6->7
-  public OrderReturn createOrderReturn(long orderDetailId, CreateOrderReturnRequest request){
+  public Map<String, Object> createOrderReturn(long orderDetailId, CreateOrderReturnRequest request){
     // Tạo OrderReturn
     OrderDetail orderDetail = orderDetailRepository.findById(orderDetailId)
         .orElseThrow(()-> new NotFoundException("Không tìm thấy OrderDetail có id:"+ orderDetailId));
       OrderReturn orderReturn = new OrderReturn();
+    Notification notification = new Notification();
       orderReturn.setOrderDetail(orderDetail);
       BeanUtils.copyProperties(request,orderReturn);
 
@@ -159,7 +149,19 @@ public class OrderService {
     if(request.totalFee() == 0){
       orderDetail.setStatus(8);
     }
+
+    else{
+      notification.setOrderId(orderDetailId);
+      notification.setRoleReceive("customer");
+      notification.setContent("Đơn hàng "+orderDetailId+" yêu cầu bồi thường phí thiệt hại");
+      notification.setUserReceiveId(orderDetail.getOrder().getUser().getId());
+      notification.setStatus(false);
+      notificationRepository.save(notification);
+    }
       orderDetailRepository.save(orderDetail);
-      return orderReturn;
+    Map<String, Object> response = new HashMap<>();
+    response.put("orderReturn", orderReturn);
+    response.put("notification", notification);
+    return response;
   }
 }

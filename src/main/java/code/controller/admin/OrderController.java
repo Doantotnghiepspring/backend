@@ -46,25 +46,30 @@ public class OrderController {
         orderDetailId, status);
 
     OrderDetail orderDetail = (OrderDetail) response.get("orderDetail");
-    User customer = (User) response.get("user");
+    Notification notification = (Notification) response.get("notification");
 
 //    Don hang tu trang thai 2 len 3 ; dang VC
     if (status == 3) {
-      webSocketController.deliverOrderDetail(customer.getId(),orderDetail);
+      webSocketController.deliverOrderDetail(notification.getUserReceiveId(),notification);
     }
     if(status == 4){
-      webSocketController.reserveOrderDetail(customer.getId(),orderDetailId,orderDetail);
+      webSocketController.reserveOrderDetail(notification.getUserReceiveId(),notification);
     }
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(orderDetail);
   }
 
 // Tạo OrderReturn
   @PostMapping("/orders/{orderDetailId}/return")
   public ResponseEntity<?> createOrderReturn(@PathVariable long orderDetailId,
       @RequestBody CreateOrderReturnRequest request) {
-    OrderReturn orderReturn = orderService.createOrderReturn(orderDetailId, request);
+    Map<String, Object> response = (Map<String, Object>) orderService.createOrderReturn(
+        orderDetailId, request);
+
+    OrderReturn orderReturn = (OrderReturn) response.get("orderReturn");
+    Notification notification = (Notification) response.get("notification");
+
     webSocketController.newOrderReturn(orderReturn.getOrderDetail().getOrder().getUser().getId(),
-        orderDetailId,orderReturn);
+        orderReturn);
     return ResponseEntity.ok(orderReturn);
   }
 
