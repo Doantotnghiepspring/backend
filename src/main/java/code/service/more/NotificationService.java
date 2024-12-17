@@ -21,10 +21,10 @@ public class NotificationService {
       Notification notification = new Notification();
       notification.setContent(content);
       if(userId == 0){
-        notification.setRole("admin");
+        notification.setRoleReceive("admin");
       }
       else{
-        notification.setRole("customer");
+        notification.setRoleReceive("customer");
       }
       notification.setUserId(userId);
       notification.setStatus(false);
@@ -35,7 +35,7 @@ public class NotificationService {
 //Xem cac page thông báo
   public Page<Notification> getNotifications(String role,long userId,int page,int size){
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-    return notificationRepository.findByRoleAndUserId(role,userId,pageable);
+    return notificationRepository.findByRoleReceiveAndUserId(role,userId,pageable);
   }
 
 //  Danh dau thong bao da duoc xem
