@@ -55,9 +55,6 @@ public class OrderReturn {
   @Column(name = "feeDetail", nullable = false)
   private String feeDetail;
 
-
-
-
   @Column(name = "created_at", nullable = false)
   @CreationTimestamp
   private LocalDateTime createdAt;

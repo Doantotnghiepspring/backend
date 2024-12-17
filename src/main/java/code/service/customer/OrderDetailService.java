@@ -52,11 +52,9 @@ public class OrderDetailService {
   }
 
   // Xem đơn hàng cụ thể có id là orderDetailId
-  public OrderDetail getByUserIdAndId(long userId, long orderDetailId) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new NotFoundException("Không tìm thấy user có id : " + userId));
+  public OrderDetail getByUserIdAndId(User user, long orderDetailId) {
     OrderDetail orderDetail = orderDetailRepository.findByOrderDetailIdAndUserId(orderDetailId,
-            userId)
+            user.getId())
         .orElseThrow(() -> new NotFoundException(
             "Không tìm thấy đơn hàng tương ứng "));
     return orderDetail;
@@ -69,6 +67,8 @@ public class OrderDetailService {
     order.setUser(user);
     order.setPayment(request.getPayment());
     order.setShipment(request.getShipment());
+    order.setCurrentAddress(request.getCurrentAddress());
+    order.setCurrentPhone(request.getCurrentPhone());
     orderRepository.save(order);
   //      Xử lý danh sách các ProductDetail x Quantity
     List<OrderDetail> orderDetails = new ArrayList<>();
@@ -87,8 +87,6 @@ public class OrderDetailService {
         throw new BadRequestException("Số lượng quá giới hạn");
       }
       orderDetail.setQuantity(productItem.getQuantity());
-      orderDetail.setCurrentPhone(request.getCurrentPhone());
-      orderDetail.setCurrentAddress(request.getCurrentAddress());
       orderDetail.setCurrentCondition(productDetail.getCondition());
       orderDetail.setNote(productItem.getNote());
       orderDetail.setStatus(1);
@@ -121,9 +119,13 @@ public OrderDetail wanToReturnOrderDetail(User user, long orderDetailId) {
           "Không tìm thấy đơn hàng tương ứng "));
   if (orderDetail.getStatus() == 4 ) {
     orderDetail.setStatus(5);
+
   } else {
     throw new BadRequestException("Lỗi khi thay đổi trạng thái.");
   }
   return orderDetail;
 }
+
+//7->8 : Xác nhận hoàn tất thanh toán ReturnOrder
+
 }

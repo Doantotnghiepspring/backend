@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service("CustomerChatService")
@@ -31,7 +32,7 @@ public class ChatService {
 
   //  Lấy phân trang các tin nhắn đã nhắn
   public Page<Message> getMessages(User user, int page, int size) {
-    Pageable pageable = PageRequest.of(page, size);
+    Pageable pageable = PageRequest.of(page,size, Sort.by(Sort.Direction.DESC, "createdAt"));
     //    Lấy cuộc trò chuyện ra theo customerId
     Conversation conversation = conversationRepository.findByCustomerId(user.getId()).orElseThrow(
         () -> new NotFoundException(

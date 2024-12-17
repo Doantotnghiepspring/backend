@@ -52,14 +52,17 @@ public class UserService {
     User newUser = new User();
     newUser.setEmail(registrationRequest.getEmail());
     newUser.setPassword(passwordEncoder.encode(registrationRequest.getPassword())); // Mã hóa mật khẩu
-    newUser.setRole("customer");
+    newUser.setRole(registrationRequest.getRole());
+    newUser.setName(registrationRequest.getName());
     newUser.setStatus(true);
 
-    //    Tạo conversation mới rỗng
-    Conversation conversation = new Conversation();
-    conversation.setCustomerId(newUser.getId());
-    conversation.setEmail(newUser.getEmail());
-    conversationRepository.save(conversation);
+    if(registrationRequest.getRole().equals("customer")){
+      //    Tạo conversation mới rỗng
+      Conversation conversation = new Conversation();
+      conversation.setCustomerId(newUser.getId());
+      conversation.setEmail(newUser.getEmail());
+      conversationRepository.save(conversation);
+    }
 
     // Lưu vào cơ sở dữ liệu
     return userRepository.save(newUser);

@@ -60,4 +60,8 @@ public class Transaction {
     String[] parts = this.content.split("_", 4);
     return Long.parseLong(parts[1]);
   }
+  public long getOrderId(){
+    String[] parts = this.content.split("_", 4);
+    return Long.parseLong(parts[3]);
+  }
 }

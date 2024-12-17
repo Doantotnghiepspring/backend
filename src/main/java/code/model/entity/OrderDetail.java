@@ -29,12 +29,6 @@ public class OrderDetail {
   @Column(name = "rental_day",nullable = false)
   private int rentalDay;
 
-  @Column(name = "current_phone",nullable = false)
-  private String currentPhone;
-
-  @Column(name = "current_address",nullable = false)
-  private String currentAddress;
-
   @Column(name = "current_condition",nullable = false)
   private String currentCondition;
 

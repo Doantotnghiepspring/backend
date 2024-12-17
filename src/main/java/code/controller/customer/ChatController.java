@@ -1,6 +1,6 @@
 package code.controller.customer;
 
-import code.controller.socket.WebSocketController;
+import code.controller.more.WebSocketController;
 import code.model.entity.User;
 import code.model.more.Message;
 import code.model.request.ChatRequest;

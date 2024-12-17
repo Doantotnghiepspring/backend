@@ -1,5 +1,7 @@
 package code.controller.customer;
 
+import code.controller.more.WebSocketController;
+import code.model.entity.OrderDetail;
 import code.model.request.CreateOrderDetailRequest;
 import code.security.CustomUserDetails;
 import code.service.customer.OrderDetailService;
@@ -12,9 +14,12 @@ import org.springframework.web.bind.annotation.*;
 public class OrderDetailController {
 
   private OrderDetailService orderDetailService;
+  private WebSocketController webSocketController;
 
-  public OrderDetailController(OrderDetailService orderDetailService) {
+  public OrderDetailController(OrderDetailService orderDetailService,
+      WebSocketController webSocketController) {
     this.orderDetailService = orderDetailService;
+    this.webSocketController = webSocketController;
   }
 
   //  Lấy tất cả các đơn hàng
@@ -22,7 +27,8 @@ public class OrderDetailController {
   public ResponseEntity<?> getOrderDetails(@AuthenticationPrincipal CustomUserDetails userDetail,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
-    return ResponseEntity.ok(orderDetailService.getOrderDetailsByUser(userDetail.getUser(), page, size));
+    return ResponseEntity.ok(
+        orderDetailService.getOrderDetailsByUser(userDetail.getUser(), page, size));
   }
 
   //  Lấy tất cả các đơn hàng theo trạng thái : status
@@ -33,9 +39,18 @@ public class OrderDetailController {
       @RequestParam(defaultValue = "10") int size,
       @RequestParam int status) {
     return ResponseEntity.ok(
-        orderDetailService.getAllByUserAndProductDetailStatus(userDetail.getUser(), status, page, size));
+        orderDetailService.getAllByUserAndProductDetailStatus(userDetail.getUser(), status, page,
+            size));
   }
 
+  //  Chi tiết đơn hàng
+  @GetMapping("/orders/{orderId}")
+  public ResponseEntity<?> getOrderDetailById(
+      @AuthenticationPrincipal CustomUserDetails userDetail,
+      @PathVariable long orderId) {
+    return ResponseEntity.ok(
+        orderDetailService.getByUserIdAndId(userDetail.getUser(), orderId));
+  }
 
   // Tạo mới đơn hàng dựa trên : List<productDetailId>, userId,
   @PostMapping("/orders")
@@ -44,17 +59,29 @@ public class OrderDetailController {
     return ResponseEntity.ok(orderDetailService.createOrderDetail(userDetail.getUser(), request));
   }
 
-//  Huy don hang
+  //  Huy don hang
   @PutMapping("/orders/{orderDetailId}")
   public ResponseEntity<?> cancelOrderDetail(@AuthenticationPrincipal CustomUserDetails userDetail,
       @PathVariable Long orderDetailId) {
-    return ResponseEntity.ok(orderDetailService.cancelOrderDetail(userDetail.getUser(),orderDetailId));
+    return ResponseEntity.ok(
+        orderDetailService.cancelOrderDetail(userDetail.getUser(), orderDetailId));
   }
 
-//  Lay don hang theo orderId
+  //  Lay don hang theo orderId
   @GetMapping("/orders/{orderDetailId}")
   public ResponseEntity<?> getOrderDetailById(@AuthenticationPrincipal CustomUserDetails userDetail,
       @PathVariable Long orderDetailId) {
-    return ResponseEntity.ok(orderDetailService.cancelOrderDetail(userDetail.getUser(),orderDetailId));
+    return ResponseEntity.ok(
+        orderDetailService.cancelOrderDetail(userDetail.getUser(), orderDetailId));
+  }
+
+  //  Khach muon tra hang
+  @PutMapping("/orders/{orderDetailId}/return")
+  public ResponseEntity<?> returnOrderDetail(@AuthenticationPrincipal CustomUserDetails userDetail,
+      @PathVariable Long orderDetailId) {
+    OrderDetail orderDetail = orderDetailService.wanToReturnOrderDetail(userDetail.getUser(),
+        orderDetailId);
+    webSocketController.customerWantToReturn(orderDetailId,orderDetail);
+    return ResponseEntity.ok(orderDetail);
   }
 }

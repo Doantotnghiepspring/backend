@@ -1,9 +1,10 @@
 package code.controller.customer;
 
-import code.controller.socket.WebSocketController;
+import code.controller.more.WebSocketController;
+import code.model.more.Notification;
 import code.model.more.Transaction;
 import code.model.request.WebHookRequest;
-import code.service.transaction.TransactionService;
+import code.service.more.TransactionService;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -27,21 +28,25 @@ public class PaymentController {
   @PostMapping("/webhook")
   public ResponseEntity<?> addTransaction(@RequestBody WebHookRequest request) {
     // Gọi service để xử lý request
-    Transaction transaction = transactionService.addTransactionFromWebHook(request);
+    Map<String,Object> map  = transactionService.addTransactionFromWebHook(request);
+    Notification notification= (Notification) map.get("notification");
+    Transaction transaction = (Transaction) map.get("transaction") ;
 
     // Tạo JSON trả về
     Map<String, Object> response = new HashMap<>();
     response.put("success", true);
-    response.put("data", transaction); // Chèn dữ liệu kết quả từ service
+    response.put("notification", notification); // Chèn dữ liệu kết quả từ service
 
-//  Gui socket thong bao toi admin
-    webSocketController.newOrderPaid(response);
-
-//    Gui socket thong bao thanh toan thnh cong toi customer
-    webSocketController.customerPaySuccess(transaction.getCustomerId(), response);
-
+//  Gui socket thong bao toi admin neu khach hang thanh toan don dat hang
+    if(transaction.getTypePayment() == 1){
+      webSocketController.customerPaySuccessForadmin(notification);
+      webSocketController.customerPaySuccess(transaction.getCustomerId(), "Thanh toán thành công");
+    }
+    if(transaction.getTypePayment() == 2){
+      webSocketController.customerPayFeeSuccessForadmin(notification);
+      webSocketController.customerPayFeeSuccess(transaction.getCustomerId(),"Thanh toán phí thành công");
+    }
     // Trả về HTTP Status 201 với JSON
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
-
 }

@@ -22,4 +22,7 @@ public class CreateOrderReturnRequest {
 //  Nếu tình trạng khác thì tạo productDetail mới dựa theo tình trạng hiện tại
   private String condition;
 
+  public long totalFee(){
+    return this.overdueFee + this.damageOrLossFee;
+  }
 }

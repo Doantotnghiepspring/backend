@@ -1,7 +1,9 @@
 package code.service.admin;
 
+import code.controller.more.WebSocketController;
 import code.exception.*;
 import code.model.entity.*;
+import code.model.more.Notification;
 import code.model.request.CreateOrderReturnRequest;
 import code.repository.*;
 import java.util.HashMap;
@@ -18,17 +20,20 @@ public class OrderService {
   private UserRepository userRepository;
   private ProductDetailRepository productDetailRepository;
   private OrderReturnRepository orderReturnRepository;
+  private NotificationRepository notificationRepository;
 
   public OrderService(OrderDetailRepository orderDetailRepository,
       UserRepository userRepository,
       ProductDetailRepository productDetailRepository,
       OrderRepository orderRepository,
-      OrderReturnRepository orderReturnRepository) {
+      OrderReturnRepository orderReturnRepository,
+      NotificationRepository notificationRepository) {
     this.orderDetailRepository = orderDetailRepository;
     this.userRepository = userRepository;
     this.orderRepository = orderRepository;
     this.productDetailRepository = productDetailRepository;
     this.orderReturnRepository = orderReturnRepository;
+    this.notificationRepository = notificationRepository;
   }
 
   //  Lấy tất cả đơn hàng
@@ -66,6 +71,13 @@ public class OrderService {
         ProductDetail productDetail = orderDetail.getProductDetail();
         productDetail.setInventory(productDetail.getInventory() - orderDetail.getQuantity());
         productDetailRepository.save(productDetail);
+        Notification notification = new Notification();
+        notification.setOrderId(orderDetailId);
+        notification.setRoleReceive("customer");
+        notification.setContent("Đơn hàng "+orderDetailId+" đang được vận chuyển");
+        notification.setUserId(orderDetail.getOrder().getUser().getId());
+        notification.setStatus(false);
+        notificationRepository.save(notification);
       } else {
         throw new BadRequestException("Không thể chuyển trạng thái");
       }
@@ -78,6 +90,13 @@ public class OrderService {
         OrderReturn orderReturn = new OrderReturn();
         orderReturn.setOrderDetail(orderDetail);
         orderReturnRepository.save(orderReturn);
+        Notification notification = new Notification();
+        notification.setOrderId(orderDetailId);
+        notification.setRoleReceive("customer");
+        notification.setContent("Đơn hàng "+orderDetailId+" đã giao cho bạn");
+        notification.setUserId(orderDetail.getOrder().getUser().getId());
+        notification.setStatus(false);
+        notificationRepository.save(notification);
       } else {
         throw new BadRequestException("Không thể chuyển trạng thái");
       }
@@ -89,6 +108,13 @@ public class OrderService {
       if (orderDetail.getStatus() == 5) {
         orderDetail.setStatus(6);
         orderDetailRepository.save(orderDetail);
+        Notification notification = new Notification();
+        notification.setOrderId(orderDetailId);
+        notification.setRoleReceive("admin");
+        notification.setContent("Đơn hàng "+orderDetailId+" đang được người dùng muốn trả");
+        notification.setUserId(0);
+        notification.setStatus(false);
+        notificationRepository.save(notification);
       } else {
         throw new BadRequestException("Không thể chuyển trạng thái");
       }
@@ -103,7 +129,7 @@ public class OrderService {
   }
 
 //  Chuyển trạng thái OrderDetail từ 6->7
-  public Object createOrderReturn(long orderDetailId, CreateOrderReturnRequest request){
+  public OrderReturn createOrderReturn(long orderDetailId, CreateOrderReturnRequest request){
     // Tạo OrderReturn
     OrderDetail orderDetail = orderDetailRepository.findById(orderDetailId)
         .orElseThrow(()-> new NotFoundException("Không tìm thấy OrderDetail có id:"+ orderDetailId));
@@ -126,10 +152,13 @@ public class OrderService {
       productDetail.setCondition(request.getCondition());
 //      productDetail.setProduct(orderDetail.getProductDetail().getProduct());
       productDetailRepository.save(productDetail);
-      return productDetail;
     }
       orderReturnRepository.save(orderReturn);
       orderDetail.setStatus(7);
+//      Nếu không có phụ phí thì chuyển sang trnajg thái 8 luôn
+    if(request.totalFee() == 0){
+      orderDetail.setStatus(8);
+    }
       orderDetailRepository.save(orderDetail);
       return orderReturn;
   }

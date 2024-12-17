@@ -38,6 +38,12 @@ public class Order {
   @Column(name = "payment",nullable = false)
   private String payment;
 
+  @Column(name = "current_phone",nullable = false)
+  private String currentPhone;
+
+  @Column(name = "current_address",nullable = false)
+  private String currentAddress;
+
   @JsonIgnore
   @ManyToOne
   @JoinColumn(name = "user_id",nullable = false, foreignKey = @ForeignKey(name = "FK_USER_ORDER"))
