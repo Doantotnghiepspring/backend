@@ -1,5 +1,6 @@
 package code.model.more;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -24,14 +25,14 @@ public class Transaction {
   @Column(name = "transaction_date", nullable = false)
   private LocalDateTime transactionDate; // Thời gian xảy ra giao dịch phía ngân hàng
 
+  @Column(name = "content", length = 500)
+  private String content; // Nội dung chuyển khoản
+
   @Column(name = "account_number", nullable = false)
   private String accountNumber; // Số tài khoản ngân hàng
 
   @Column(name = "code")
   private String code; // Mã code thanh toán
-
-  @Column(name = "content", length = 500)
-  private String content; // Nội dung chuyển khoản
 
   @Column(name = "transfer_type", nullable = false)
   private String transferType; // Loại giao dịch (in hoặc out)
@@ -51,15 +52,17 @@ public class Transaction {
   @Column(name = "description", columnDefinition = "TEXT")
   private String description; // Toàn bộ nội dung tin nhắn SMS
 
+  @JsonIgnore
   public long getCustomerId(){
     String[] parts = this.content.split("_", 4);
     return Long.parseLong(parts[2]);
   }
-
+  @JsonIgnore
   public long getTypePayment(){
     String[] parts = this.content.split("_", 4);
     return Long.parseLong(parts[1]);
   }
+  @JsonIgnore
   public long getOrderId(){
     String[] parts = this.content.split("_", 4);
     return Long.parseLong(parts[3]);
