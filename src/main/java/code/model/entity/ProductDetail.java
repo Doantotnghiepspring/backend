@@ -1,5 +1,6 @@
 package code.model.entity;
 
+import code.model.more.Image;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.*;
@@ -40,6 +41,10 @@ public class ProductDetail {
 
   @Column(name = "status", nullable = false)
   private boolean status;
+
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name = "image_id", referencedColumnName = "id")
+  private Image image;
 
   @Column(name = "created_at", nullable = false)
   @CreationTimestamp

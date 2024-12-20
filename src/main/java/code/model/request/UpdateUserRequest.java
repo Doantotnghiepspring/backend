@@ -12,7 +12,6 @@ import lombok.Setter;
 public class UpdateUserRequest {
   private String name;
   private String phone;
-  private String role;
   private String password;
-  private int status;
+  private boolean status;
 }

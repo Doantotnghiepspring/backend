@@ -170,4 +170,16 @@ public class ProductService {
     // Trả về Page<ProductDTO> bằng cách sử dụng PageImpl
     return new PageImpl<>(paginatedDTOs, pageable, productDTOs.size());
   }
+
+//  Lấy product thoeo slug
+public ProductDetailDTO getProductDTOBySlug(String slug) {
+  Product product = productRepository.findBySlug(slug)
+      .orElseThrow(() -> new NotFoundException("Không thấy Product có slug : " + slug));
+  ProductDTO productDTO = new ProductDTO();
+  BeanUtils.copyProperties(product, productDTO);
+  ProductDetailDTO productDetailDTO = new ProductDetailDTO();
+  productDetailDTO.setProductDTO(productDTO);
+  productDetailDTO.setProductDetails(productDetailRepository.findByProductId(product.getId()));
+  return productDetailDTO;
+}
 }

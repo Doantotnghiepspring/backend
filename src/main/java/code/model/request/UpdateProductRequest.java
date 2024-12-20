@@ -9,7 +9,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Setter
 @Getter
-public class UpdateCategoryRequest {
-  private long id;
+public class UpdateProductRequest {
+  private long newCategoryId;
   private String newName;
+  private  String newDescription;
+  private  String newBrand;
 }

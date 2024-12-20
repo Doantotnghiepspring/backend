@@ -13,7 +13,6 @@ public class test {
   public ResponseEntity<?> get(
       @AuthenticationPrincipal CustomUserDetails userDetails
   ){
-
     return ResponseEntity.ok(userDetails.getUser());
   }
 

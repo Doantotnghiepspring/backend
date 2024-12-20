@@ -74,8 +74,12 @@ public class ProductController {
       @RequestParam(defaultValue = "10") int size) {
     return ResponseEntity.ok(this.productService.findProductDTOsByKeyword(keyword, page, size));
   }
-//  Lọc giá sau khi tìm kiếm sản phẩm
 
+  //  Lấy sản phẩm theo slug
+  @GetMapping("/{slug}")
+  public ResponseEntity<?> getProductBySlug(@PathVariable String slug) {
+    return ResponseEntity.ok(this.productService.getProductDTOBySlug(slug));
+  }
 
 
 }

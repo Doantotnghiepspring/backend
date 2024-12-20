@@ -30,7 +30,7 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable()) // Vô hiệu hóa CSRF (không cần cho API)
         .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Kích hoạt CORS với cấu hình riêng
         .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/api/auth/**","api/home/**","/ws/**").permitAll() // Cho phép truy cập công khai tới các API xác thực (login, register, v.v.)
+            .requestMatchers("/api/auth/**","api/home/**","/ws/**","/uploads/**").permitAll() // Cho phép truy cập công khai tới các API xác thực (login, register, v.v.)
             .requestMatchers("/api/admin/**").hasRole("admin") // Chỉ admin có thể truy cập
             .requestMatchers("/api/customer/**").hasRole("customer") // Chỉ customer có thể truy cập
             .requestMatchers("/api/payment/**").permitAll()

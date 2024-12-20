@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,5 +17,6 @@ public class CreateProductRequest {
   @NotBlank(message = "Description không được để trống")
   private String description;
   private  String name;
-  private long category_id;
+  private long categoryId;
+  private MultipartFile file;
 }

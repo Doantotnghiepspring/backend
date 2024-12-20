@@ -1,12 +1,13 @@
 package code.controller.admin;
 
+import code.exception.BadRequestException;
 import code.model.entity.Category;
-import code.model.request.CreateCategoryRequest;
-import code.model.request.UpdateCategoryRequest;
 import code.service.admin.CategoryService;
+import java.io.IOException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController("AdminCategoryController")
 @RequestMapping("/api/admin")
@@ -24,12 +25,33 @@ public class CategoryController {
   }
 
   @PostMapping("/categories")
-  public ResponseEntity<Category> createCategory(@RequestBody CreateCategoryRequest createCategoryRequest){
-    return ResponseEntity.ok(this.categoryService.createCategory(createCategoryRequest));
+  public ResponseEntity<Category> createCategory(
+      @RequestParam String categoryName,
+      @RequestParam MultipartFile file)
+      throws IOException {
+    if(categoryName == null || categoryName.trim().equals("")){
+       throw new BadRequestException("Tên danh mục không được để trống");
+    }
+    if (file == null || file.isEmpty()) {
+      throw new BadRequestException("File ảnh trống");
+    }
+    return ResponseEntity.ok(this.categoryService.createCategory(categoryName,file));
   }
 
-  @PutMapping("/categories")
-  public ResponseEntity<Category> createCategory(@RequestBody UpdateCategoryRequest updateCategoryRequest){
-    return ResponseEntity.ok(this.categoryService.updateCategory(updateCategoryRequest));
+  @PutMapping("/categories/{categoryId}")
+  public ResponseEntity<Category> updateCategory(
+      @PathVariable long categoryId,
+      @RequestParam String categoryName){
+    return ResponseEntity.ok(this.categoryService.updateCategory(categoryId,categoryName));
+  }
+
+  @PutMapping("/categories/{categoryId}/image")
+  public ResponseEntity<Category> updateImageCategory(
+      @PathVariable long categoryId,
+      @RequestParam MultipartFile file) throws IOException {
+    if (file.isEmpty()) {
+      throw new BadRequestException("File không được để trống");
+    }
+        return ResponseEntity.ok(categoryService.updateImageCategory(file,categoryId));
   }
 }

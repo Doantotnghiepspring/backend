@@ -1,4 +1,5 @@
 package code.model.entity;
+import code.model.more.Image;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -32,4 +33,8 @@ public class Category {
   @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
   @JsonIgnore
   private List<Product> products;
+
+  @OneToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name = "image_id", referencedColumnName = "id")
+  private Image image;
 }
