@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.*;
@@ -34,8 +35,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 @Service("AdminProductService")
 public class ProductService {
-  @Value("${UPLOAD_DIR}")
-  private String UPLOAD_DIR;
+
   private ProductRepository productRepository;
   private CategoryRepository categoryRepository;
   private final Cloudinary cloudinary;
@@ -70,6 +70,29 @@ public class ProductService {
         .toLowerCase(Locale.ENGLISH);
   }
 
+  private void validateFile(MultipartFile[] files) {
+    if(files.length > 4){
+      throw new BadRequestException("Số lượng file không được vượt quá 4");
+    }
+    for (MultipartFile file : files) {
+      //Lấy tên file và đuôi mở rộng của file
+      String originalFilename = file.getOriginalFilename();
+      String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
+
+      //Kiểm tra xem file có đúng định dạng không
+      if (!extension.equals("png") && !extension.equals("jpg")
+          && !extension.equals("gif") && !extension.equals("webp")
+          && !extension.equals("jpeg")) {
+        throw new BadRequestException("Không hỗ trợ định dạng file này!");
+      }
+
+      if (file.getSize() > 1024 * 1024) {
+        throw new BadRequestException(
+            "File " + file.getOriginalFilename() + " vượt quá dung lượng tối đa 1MB");
+      }
+    }
+  }
+
   public Page<Product> getProducts(int page, int size) {
     Pageable pageable = PageRequest.of(page, size);
     return this.productRepository.findAll(pageable);
@@ -79,16 +102,13 @@ public class ProductService {
     return this.productRepository.findById(product_id)
         .orElseThrow(() -> new NotFoundException("Không tìm thấy product có id : " + product_id));
   }
-
-  public Product createProduct(CreateProductRequest request)
-      throws IOException {
+  public Product createProduct(CreateProductRequest request) throws IOException {
+    validateFile(new MultipartFile[]{request.getFile()});
     if (this.productRepository.findByName(request.getName()).isPresent()) {
       throw new ConflictException("Tên sản phẩm đã tồn tại!");
     }
-
     Image image = new Image();
     imageRepository.save(image);
-
     Map<String, Object> options = ObjectUtils.asMap(
         "public_id", String.valueOf(image.getId()),      // Đặt public ID cho ảnh
         "tags", "thumbnail",// Thêm các tag (danh sách thẻ)
@@ -116,7 +136,6 @@ public class ProductService {
     product.setThumbnail(image);
     return productRepository.save(product);
   }
-
   public Product updateProduct(UpdateProductRequest request, long productId) {
     Product product = productRepository.findById(productId)
         .orElseThrow(() -> new NotFoundException("Không tìm thấy Product có id : " + productId));
@@ -135,21 +154,10 @@ public class ProductService {
     product.setSlug(uniqueSlug);
     return productRepository.save(product);
   }
-
-  public Product updateProductThumbnail(long productId,MultipartFile file) throws IOException {
+  public Image updateProductThumbnail(long productId, MultipartFile file) throws IOException {
     Product product = productRepository.findById(productId)
         .orElseThrow(() -> new NotFoundException("Không tìm thấy Product có id : " + productId));
-
-    //Lấy tên file và đuôi mở rộng của file
-    String originalFilename = file.getOriginalFilename();
-    String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
-
-    //Kiểm tra xem file có đúng định dạng không
-    if (!extension.equals("png") && !extension.equals("jpg")
-        && !extension.equals("gif") && !extension.equals("svg")
-        && !extension.equals("jpeg")) {
-      throw new BadRequestException("Không hỗ trợ định dạng file này!");
-    }
+    validateFile(new MultipartFile[]{file});
     Image image = product.getThumbnail();
     Map<String, Object> options = ObjectUtils.asMap(
         "public_id", String.valueOf(image.getId()),      // Đặt public ID cho ảnh
@@ -162,15 +170,10 @@ public class ProductService {
     imageRepository.save(image);
     product.setThumbnail(image);
     productRepository.save(product);
-    return product;
+    return image;
   }
-
-
   public Product addProductImage(long productId, MultipartFile[] files) throws IOException {
-    // Ghi lại thời gian bắt đầu của phương thức
-    long startTime = System.currentTimeMillis();
-    System.out.println("Bắt đầu xử lý: " + Instant.now());
-
+    validateFile(files);
     // Tìm kiếm sản phẩm
     Product product = productRepository.findById(productId)
         .orElseThrow(() -> new NotFoundException("Không tìm thấy Product có id : " + productId));
@@ -180,38 +183,21 @@ public class ProductService {
       throw new BadRequestException("Tổng số lượng ảnh không được quá 10 ảnh");
     }
 
-    // In ra thời gian sau khi kiểm tra số lượng ảnh
-    long checkFileCountTime = System.currentTimeMillis();
-    System.out.println("Kiểm tra số lượng ảnh mất thời gian: " + (checkFileCountTime - startTime) + " ms");
-
     // Lặp qua từng file và upload ảnh
     for (MultipartFile file : files) {
       long uploadStartTime = System.currentTimeMillis();
       Image image = new Image();
       imageRepository.save(image);
 
-      File uploadDir = new File(UPLOAD_DIR);
-      if (!uploadDir.exists()) {
-        uploadDir.mkdirs(); // Tạo thư mục nếu chưa có
-      }
-      String originalFilename = file.getOriginalFilename();
-      String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
-      String fileName = "image" + String.valueOf(image.getId()) + "." + extension;
-      Path filePath = Paths.get(UPLOAD_DIR, fileName);
+      Map<String, Object> options = ObjectUtils.asMap(
+          "public_id", String.valueOf(image.getId()),      // Đặt public ID cho ảnh
+          "tags", "product-image",// Thêm các tag (danh sách thẻ)
+          "transformation", new Transformation().width(512).height(512)
+              .crop("pad").quality(60)
+      );
+      Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), options);
+      image.setUrl(uploadResult.get("url").toString());
 
-      // Lưu file vào thư mục
-      file.transferTo(filePath.toFile());
-
-//      Map<String, Object> options = ObjectUtils.asMap(
-//          "public_id", String.valueOf(image.getId()),      // Đặt public ID cho ảnh
-//          "tags", "product-image", // Thêm các tag (danh sách thẻ)
-//          "transformation", new Transformation().width(512).height(512)
-//              .crop("pad").quality(100)
-//      );
-//      Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), options);
-//      image.setUrl(uploadResult.get("url").toString());
-
-      image.setUrl("/images/" + filePath);
       List<Image> images = product.getImages();
       images.add(image);
       product.setImages(images);
@@ -219,18 +205,57 @@ public class ProductService {
 
       image.setProduct(product);
       imageRepository.save(image);
-
-      // In ra thời gian sau khi hoàn thành upload một ảnh
-      long uploadEndTime = System.currentTimeMillis();
-      System.out.println("Upload ảnh " + image.getId() + " mất thời gian: " + (uploadEndTime - uploadStartTime) + " ms");
     }
-
-    // In ra tổng thời gian của phương thức
-    long endTime = System.currentTimeMillis();
-    System.out.println("Kết thúc xử lý: " + Instant.now());
-    System.out.println("Tổng thời gian xử lý: " + (endTime - startTime) + " ms");
-
     return productRepository.save(product);
   }
+  public Image updateProductImage(long productId, long imageId, MultipartFile file) throws IOException {
+    Product product = productRepository.findById(productId)
+        .orElseThrow(() -> new NotFoundException("Không tìm thấy Product có id : " + productId));
+    Image image = imageRepository.findById(imageId)
+        .orElseThrow(() -> new NotFoundException("Không tìm thấy Image có id : " + imageId));
+    validateFile(new MultipartFile[]{file});
 
+    Map<String, Object> options = ObjectUtils.asMap(
+        "public_id", String.valueOf(image.getId()),      // Đặt public ID cho ảnh
+        "tags", "thumbnail",// Thêm các tag (danh sách thẻ)
+        "transformation", new Transformation().width(64).height(64)
+            .crop("pad").quality(100)
+    );
+    Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), options);
+    image.setUrl(uploadResult.get("url").toString());
+    imageRepository.save(image);
+    productRepository.save(product);
+    return image;
+  }
+  public Product deleteProductImage(long productId, long imageId) throws IOException{
+    Product product = productRepository.findById(productId)
+        .orElseThrow(() -> new NotFoundException("Không tìm thấy Product có id : " + productId));
+    Image image = imageRepository.findById(imageId)
+        .orElseThrow(() -> new NotFoundException("Không tìm thấy Image có id : " + imageId));
+
+//    Xóa ảnh trên cloud
+    Map<?, ?> result = cloudinary.uploader().destroy(String.valueOf(imageId), ObjectUtils.emptyMap());
+
+    if(product.getImages().contains(image)){
+      List<Image> images = product.getImages();
+      images.remove(image);
+//      xóa thông tin ảnh trong database
+      imageRepository.delete(image);
+//      Cập nhật lại images trong product
+      product.setImages(images);
+      productRepository.save(product);
+    }
+    else{
+      throw new BadRequestException("Product có id : "+productId+" không có Image có id : "+imageId);
+    }
+    return product;
+  }
+
+  public String updateStatusProduct(long productId,boolean status){
+    Product product = productRepository.findById(productId)
+        .orElseThrow(() -> new NotFoundException("Không tìm thấy Product có id : " + productId));
+    product.setStatus(status);
+    productRepository.save(product);
+    return "Cập nhật trang thái Product thành công";
+  }
 }

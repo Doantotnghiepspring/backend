@@ -19,10 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController("adminProductController")
 @RequestMapping("/api/admin")
 public class ProductController {
-  // Danh sách các định dạng ảnh hợp lệ
-  private static final List<String> VALID_IMAGE_TYPES = Arrays.asList(
-      "image/jpeg", "image/png", "image/gif"
-  );
+
   private ProductService productService;
 
   public ProductController(ProductService productService) {
@@ -59,7 +56,15 @@ public class ProductController {
     return ResponseEntity.ok(productService.updateProduct(request, productId));
   }
 
-//  Thay đổi thumbnail cho Product
+  // Cập nhật trạng thái Product
+  @PutMapping("/products/{productId}/")
+  public ResponseEntity<?> updateStatusProduct(
+      @PathVariable long productId,
+      @RequestParam boolean status) {
+    return ResponseEntity.ok(productService.updateStatusProduct(productId, status));
+  }
+
+  //  Thay đổi thumbnail cho Product
   @PutMapping("/products/{productId}/thumbnail")
   public ResponseEntity<?> updateProductThumbnail(
       @PathVariable long productId,
@@ -67,40 +72,39 @@ public class ProductController {
     if (file == null || file.isEmpty()) {
       throw new BadRequestException("File ảnh trống");
     }
-    return ResponseEntity.ok(productService.updateProductThumbnail(productId,file));
+    return ResponseEntity.ok(productService.updateProductThumbnail(productId, file));
   }
 
-//  Thêm list ảnh cho Product
-//  Tạo Product mới
-@PostMapping("/products/{productId}/images")
-public ResponseEntity<?> createProductImages(
-    @PathVariable long productId,
-    @RequestParam MultipartFile[] files) throws IOException {
+  //  Thêm list ảnh cho Product
+  @PostMapping("/products/{productId}/images")
+  public ResponseEntity<?> createProductImages(
+      @PathVariable long productId,
+      @RequestParam MultipartFile[] files) throws IOException {
 
-  if (files == null || files.length == 0 ) {
-    throw new BadRequestException("File ảnh trống");
-  }
-  int maxFiles = 5; // Số lượng file tối đa
-  long maxFileSize = 1 * 1024 * 1024; // 1MB mỗi file
-
-  // Kiểm tra số lượng file
-  if (files.length > maxFiles) {
-    return ResponseEntity.badRequest().body("Số lượng file không được vượt quá " + maxFiles);
-  }
-
-  // Kiểm tra dung lượng từng file
-  for (MultipartFile file : files) {
-    if (file.getSize() > maxFileSize) {
-      return ResponseEntity.badRequest()
-          .body("File " + file.getOriginalFilename() + " vượt quá dung lượng tối đa 1MB");
+    if (files == null || files.length == 0) {
+      throw new BadRequestException("File ảnh trống");
     }
-    // Kiểm tra định dạng file
-    String contentType = file.getContentType();
-    if (contentType == null || !VALID_IMAGE_TYPES.contains(contentType)) {
-      return ResponseEntity.badRequest()
-          .body("File " + file.getOriginalFilename() + " không phải là file ảnh hợp lệ");
-    }
+    return ResponseEntity.ok(productService.addProductImage(productId, files));
   }
-  return ResponseEntity.ok(productService.addProductImage(productId,files));
-}
+
+  //  Thay ảnh cho Product trong ProductImage
+  @PutMapping("/products/{productId}/images/{imageId}")
+  public ResponseEntity<?> updateProductImage(
+      @PathVariable long productId,
+      @PathVariable long imageId,
+      @RequestParam MultipartFile file
+  ) throws IOException {
+    if (file == null || file.isEmpty()) {
+      throw new BadRequestException("File ảnh trống");
+    }
+    return ResponseEntity.ok(productService.updateProductImage(productId, imageId, file));
+  }
+
+  //  Xóa ảnh trong ProductImage
+  @DeleteMapping("/products/{productId}/images/{imageId}")
+  public ResponseEntity<?> deleteProductImage(
+      @PathVariable long productId,
+      @PathVariable long imageId) throws IOException {
+    return ResponseEntity.ok(productService.deleteProductImage(productId, imageId));
+  }
 }

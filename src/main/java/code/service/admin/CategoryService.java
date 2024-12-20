@@ -19,8 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service("AdminCategoryService")
 public class CategoryService {
-  @Value("${UPLOAD_DIR}")
-  private String UPLOAD_DIR;
   private CategoryRepository categoryRepository;
   private final Cloudinary cloudinary;
   private ImageRepository imageRepository;

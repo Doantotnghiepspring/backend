@@ -36,6 +36,9 @@ public class Product {
   @Column(name = "slug", nullable = false, unique = true)
   private String slug;
 
+  @Column(name = "status", nullable = false)
+  private boolean status = true;
+
   // Quan hệ 1-1: Thumbnail (ảnh đại diện)
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "thumbnail_id", referencedColumnName = "id")

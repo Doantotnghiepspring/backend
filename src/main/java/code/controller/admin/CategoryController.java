@@ -49,7 +49,7 @@ public class CategoryController {
   public ResponseEntity<Category> updateImageCategory(
       @PathVariable long categoryId,
       @RequestParam MultipartFile file) throws IOException {
-    if (file.isEmpty()) {
+    if (file.isEmpty() || file == null) {
       throw new BadRequestException("File không được để trống");
     }
         return ResponseEntity.ok(categoryService.updateImageCategory(file,categoryId));

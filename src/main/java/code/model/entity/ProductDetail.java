@@ -40,7 +40,7 @@ public class ProductDetail {
   private long inventory;
 
   @Column(name = "status", nullable = false)
-  private boolean status;
+  private boolean status = true;
 
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "image_id", referencedColumnName = "id")
