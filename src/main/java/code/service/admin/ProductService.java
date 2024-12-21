@@ -162,7 +162,7 @@ public class ProductService {
     Map<String, Object> options = ObjectUtils.asMap(
         "public_id", String.valueOf(image.getId()),      // Đặt public ID cho ảnh
         "tags", "thumbnail",// Thêm các tag (danh sách thẻ)
-        "transformation", new Transformation().width(64).height(64)
+        "transformation", new Transformation().width(512).height(512)
             .crop("pad").quality(100)
     );
     Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), options);
